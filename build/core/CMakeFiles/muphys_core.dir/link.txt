@@ -1,1 +1,0 @@
-/sw/spack-levante/nvhpc-24.7-py26uc/Linux_x86_64/24.7/compilers/bin/nvc++ -fPIC  -Wall -Wextra -std=c++20 -shared -Wl,-soname,libmuphys_core.so -o ../lib64/libmuphys_core.so CMakeFiles/muphys_core.dir/common/utils.cpp.o 

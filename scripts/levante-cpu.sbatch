@@ -4,7 +4,7 @@
 #SBATCH --job-name=scc
 #SBATCH --partition=compute
 #SBATCH --ntasks=1
-#SBATCH --output=cpu_double_all_test.log
+#SBATCH --output=cpu_single_all_test.log
 #SBATCH --time=00:20:00
 
 ulimit -s unlimited
@@ -13,7 +13,7 @@ ulimit -c 0
 export OMPI_MCA_opal_cuda_support=false
 
 
-PERCISION=double
+PERCISION=single
 
 # setup env
 #. scripts/levante-setup.sh nvidia cpu
