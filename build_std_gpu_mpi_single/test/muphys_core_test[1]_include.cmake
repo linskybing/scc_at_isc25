@@ -1,0 +1,5 @@
+if(EXISTS "/home/b/b383366/scc_at_isc25/build_std_gpu_mpi_single/test/muphys_core_test[1]_tests.cmake")
+  include("/home/b/b383366/scc_at_isc25/build_std_gpu_mpi_single/test/muphys_core_test[1]_tests.cmake")
+else()
+  add_test(muphys_core_test_NOT_BUILT muphys_core_test_NOT_BUILT)
+endif()
