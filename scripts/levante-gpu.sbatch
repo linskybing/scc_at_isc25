@@ -8,19 +8,19 @@
 #SBATCH --exclusive
 #SBATCH --time=00:10:00
 
-# input file
-IN_FILE=$(pwd)/tasks/dbg.nc
-# output file
-OUT_FILE=output.nc
-# reference file associated with input file
-REF_FILE=$(pwd)/reference_results/seq_dbg_double.nc
+PERCISION=single
+
+IN_FILE=/work/ka1273/atm_R2B08.nc
+
+OUT_FILE=/scratch/b/b383366/outputs/output_gpu_$PERCISION.nc
+
+REF_FILE=/scratch/b/b383366/results/atm_R2B08_ans_$PERCISION.nc
 
 # setup env
-. scripts/levante-setup.sh nvidia cpu
+. scripts/levante-setup.sh nvidia gpu
 
 # build the code
-PERCISION=single
-. scripts/build_cpu_$PERCISION.sh
+. scripts/build_gpu_$PERCISION.sh
 
 module load cdo
 
@@ -35,13 +35,16 @@ fi
 
 BIN=$(pwd)/$BUILD/bin/graupel
 
-$BIN $IN_FILE $OUT_FILE
+srun -l --kill-on-bad-exit=1 $BIN $(pwd)/tasks/dbg.nc $OUT_FILE
+check $OUT_FILE $(pwd)/reference_results/seq_dbg_$PERCISION.nc
+
+srun -l --kill-on-bad-exit=1 $BIN $(pwd)/tasks/11k.nc $OUT_FILE
+check $OUT_FILE  $(pwd)/reference_results/seq_11k_$PERCISION.nc
+
+srun -l --kill-on-bad-exit=1 $BIN $(pwd)/tasks/20k.nc $OUT_FILE
+check $OUT_FILE  $(pwd)/reference_results/seq_20k_$PERCISION.nc
+
+srun -l --kill-on-bad-exit=1 $BIN $IN_FILE $OUT_FILE
 check $OUT_FILE $REF_FILE
-
-$BIN $(pwd)/tasks/11k.nc $OUT_FILE
-check $OUT_FILE $(pwd)/reference_results/seq_11k_$PERCISION.nc
-
-$BIN $(pwd)/tasks/20k.nc $OUT_FILE
-check $OUT_FILE $(pwd)/reference_results/seq_20k_$PERCISION.nc
 
 echo "Job done!"

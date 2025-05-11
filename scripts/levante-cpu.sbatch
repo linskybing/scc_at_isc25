@@ -4,8 +4,8 @@
 #SBATCH --job-name=scc
 #SBATCH --partition=compute
 #SBATCH --ntasks=1
-#SBATCH --output=cpu_single_all_test.log
-#SBATCH --time=00:20:00
+#SBATCH --output=cpu_double_check.log
+#SBATCH --time=00:30:00
 
 ulimit -s unlimited
 ulimit -c 0
@@ -13,7 +13,7 @@ ulimit -c 0
 export OMPI_MCA_opal_cuda_support=false
 
 
-PERCISION=single
+PERCISION=double
 
 # setup env
 #. scripts/levante-setup.sh nvidia cpu
@@ -28,18 +28,17 @@ OUT_FILE=/scratch/b/b383366/outputs/output_cpu_$PERCISION.nc
 
 REF_FILE=/scratch/b/b383366/results/atm_R2B08_ans_$PERCISION.nc
 
-. $(pwd)/scripts/build_cpu_$PERCISION.sh
 
+# build
+BUILD=build_std_cpu_$PERCISION
 
-# BUILD=build
-# rm -rf build
-# cmake -B build -S . \
-# -DMU_IMPL=std \
-# -DMU_ARCH=x86_64 \
-# -DMU_ENABLE_SINGLE=OFF \
-# -DMU_ENABLE_MPI=ON \
-# -DCMAKE_CXX_COMPILER=nvc++ \
-# && cmake --build build
+spack load /42ju4ng # netcdf-cxx4 compiled with nvhpc
+module load nvhpc/24.7-gcc-11.2.0
+module load openmpi/4.1.5-nvhpc-24.7
+export LD_LIBRARY_PATH=/sw/spack-levante/gcc-11.2.0-bcn7mb/lib64/
+
+# build the code
+. scripts/build_cpu_$PERCISION.sh
 
 module load cdo
 
@@ -63,23 +62,26 @@ for NP in $(seq 1 1); do
 
   srun --ntasks=$NP $BIN $(pwd)/tasks/dbg.nc $OUT_FILE
   #$BIN $(pwd)/tasks/dbg.nc $(pwd)/seq/seq_dbg_$PERCISION.nc
-  check $OUT_FILE $(pwd)/seq/seq_dbg_$PERCISION.nc
+  check $OUT_FILE /home/b/b383366/clean-repo/seq/seq_dbg_$PERCISION.nc
 
   rm -rf $OUT_FILE
 
   srun --ntasks=$NP $BIN $(pwd)/tasks/11k.nc $OUT_FILE
   #$BIN $(pwd)/tasks/11k.nc $(pwd)/seq/seq_11k_$PERCISION.nc
-  check $OUT_FILE $(pwd)/seq/seq_11k_$PERCISION.nc
+  check $OUT_FILE /home/b/b383366/clean-repo/seq/seq_11k_$PERCISION.nc
 
   rm -rf $OUT_FILE
 
   srun --ntasks=$NP $BIN $(pwd)/tasks/20k.nc $OUT_FILE
   #$BIN $(pwd)/tasks/20k.nc $(pwd)/seq/seq_20k_$PERCISION.nc
-  check $OUT_FILE $(pwd)/seq/seq_20k_$PERCISION.nc
+  check $OUT_FILE /home/b/b383366/clean-repo/seq/seq_20k_$PERCISION.nc
 
   rm -rf $OUT_FILE
 
   echo ""
 done
+
+srun --ntasks=1 $BIN $IN_FILE $OUT_FILE
+check $OUT_FILE $REF_FILE
 
 echo "All runs completed."
